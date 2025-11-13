@@ -189,10 +189,9 @@ export default class Downloader extends CtcpParser {
     if (fileInfo.position && fileInfo.position > 0) {
       candidate.timeout.clear();
       if (bar) {
-        const f = fs.readFileSync(fileInfo.filePath);
-        if (f && f.length > 0) {
-          bar.tick(f.length, undefined, this.verbose);
-        }
+        bar.curr = fileInfo.position;
+        const estimatedElapsed = fileInfo.position / (1024 * 100) * 1000;
+        bar.start = new Date(Date.now() - estimatedElapsed);
       }
     }
     if (throttle) {

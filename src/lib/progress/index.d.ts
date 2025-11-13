@@ -87,6 +87,16 @@ declare class ProgressBar {
   curr: number
 
   /**
+   * Start time for ETA calculation
+   */
+  start: Date
+
+  /**
+   * Reset progress bar for resume functionality
+   */
+  resetForResume(resumePosition: number, estimatedElapsed?: number): void
+
+  /**
    * Total number of ticks to complete.
    */
   total: number

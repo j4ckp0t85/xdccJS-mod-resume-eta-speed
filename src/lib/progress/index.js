@@ -285,3 +285,15 @@ ProgressBar.prototype.humanETA = function (ms) {
     })
     .join(' ')
 }
+
+/**
+ * Reset progress bar for resume functionality
+ * @param {number} resumePosition current position in bytes
+ * @param {number} estimatedElapsed estimated elapsed time in ms
+ */
+ProgressBar.prototype.resetForResume = function(resumePosition, estimatedElapsed) {
+  this.curr = resumePosition;
+  this.start = new Date(Date.now() - (estimatedElapsed || 0));
+  this.lastRender = -Infinity;
+  this.lastDraw = '';
+}

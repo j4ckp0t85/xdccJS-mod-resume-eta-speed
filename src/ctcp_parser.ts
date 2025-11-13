@@ -118,11 +118,29 @@ export class CtcpParser extends AddJob {
     if (fileInfo && this.SecurityCheck(resp.nick, candidate)) {
       if (isResuming) {
         candidate.timeout.clear();
+        this.SetupTimeout({
+          candidate,
+          eventType: 'error',
+          message: `couldn't resume download of %cyan%${fileInfo.file}`,
+          padding: 6,
+          delay: this.timeout,
+          fileInfo,
+        });
         return { fileInfo, candidate };
       }
       if (fileInfo.type === 'DCC SEND') {
         const fileExists = this.checkExistingFiles(fileInfo, candidate, resp);
-        if (!fileExists) return { fileInfo, candidate };
+        if (!fileExists) {
+          this.SetupTimeout({
+            candidate,
+            eventType: 'error',
+            message: `couldn't connect to %yellow%${fileInfo.ip}:${fileInfo.port}`,
+            padding: 6,
+            delay: this.timeout,
+            fileInfo,
+          });
+          return { fileInfo, candidate };
+        }
       }
     }
     return undefined;
@@ -144,11 +162,25 @@ export class CtcpParser extends AddJob {
 
   private checkExistingFiles(fileInfo: FileInfo, candidate: Job, resp: { [prop: string]: string }): boolean {
     if (fs.existsSync(fileInfo.filePath) && this.path) {
-      fileInfo.position = fs.statSync(fileInfo.filePath).size;
-      if (fileInfo.position < 0) {
-        fileInfo.position = 0;
+      const stats = fs.statSync(fileInfo.filePath);
+      fileInfo.position = stats.size;
+      
+      // Verifica integrità: se il file è più grande del previsto, ricomincia
+      if (fileInfo.position >= fileInfo.length) {
+        this.print(`%info% File %cyan%${fileInfo.file}%reset% already complete or corrupted, restarting`, 6);
+        fs.unlinkSync(fileInfo.filePath);
+        return false;
       }
-      // fileInfo.length -= fileInfo.position
+      
+      // Sicurezza: non riprendere se il file è troppo piccolo (possibile corruzione)
+      if (fileInfo.position < 1024 && fileInfo.length > 1024) {
+        this.print(`%info% File %cyan%${fileInfo.file}%reset% too small, restarting from beginning`, 6);
+        fs.unlinkSync(fileInfo.filePath);
+        return false;
+      }
+      
+      this.print(`%info% Resuming %cyan%${fileInfo.file}%reset% from position ${fileInfo.position}`, 6);
+      
       const quotedFilename = CtcpParser.fileNameWithQuotes(fileInfo.file);
       this.ctcpRequest(resp.nick, 'DCC RESUME', quotedFilename, fileInfo.port, fileInfo.position);
       this.addToResumeQueue(fileInfo, resp.nick);
