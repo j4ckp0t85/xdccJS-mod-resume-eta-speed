@@ -92,6 +92,11 @@ declare class ProgressBar {
   start: Date
 
   /**
+   * Bytes at session start for resume calculation
+   */
+  sessionStart: number
+
+  /**
    * Reset progress bar for resume functionality
    */
   resetForResume(resumePosition: number, estimatedElapsed?: number): void

@@ -75,6 +75,7 @@ function ProgressBar(fmt, options) {
   this.rollStates = ['|', '/', '-', '\\', '|', '/', '-', '\\']
   this.eta = 'infinite'
   this.rate = 'NaN'
+  this.sessionStart = 0  // Bytes at session start for resume calculation
 }
 
 /**
@@ -143,9 +144,16 @@ ProgressBar.prototype.render = function (tokens, force, verboseMode) {
   var percent = Math.floor(ratio * 100)
   var incomplete, complete, completeLength
   var elapsed = new Date() - this.start
-  var etaTime = percent == 100 ? 0 : elapsed * (this.total / this.curr - 1)
+  // Calculate speed based on bytes downloaded in current session only
+  var sessionBytes = this.curr - (this.sessionStart || 0)
+  var rt = sessionBytes / (elapsed / 1000)
+  
+  // Calculate ETA based on remaining bytes and current session speed
+  var remainingBytes = this.total - this.curr
+  var etaTime = (rt > 0 && remainingBytes > 0) ? (remainingBytes / rt) * 1000 : 0
+  
   this.eta = this.humanETA(etaTime)
-  var rt = this.curr / (elapsed / 1000)
+  this.rate = this.humanFileSize(rt)
   this.rate = this.humanFileSize(rt)
 
   if (!this.stream.isTTY || verboseMode == undefined || verboseMode != true) return
@@ -293,7 +301,8 @@ ProgressBar.prototype.humanETA = function (ms) {
  */
 ProgressBar.prototype.resetForResume = function(resumePosition, estimatedElapsed) {
   this.curr = resumePosition;
-  this.start = new Date(Date.now() - (estimatedElapsed || 0));
+  this.sessionStart = resumePosition;  // Track bytes at resume start
+  this.start = new Date();  // Reset timer for accurate speed calculation
   this.lastRender = -Infinity;
   this.lastDraw = '';
 }
