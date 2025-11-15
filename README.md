@@ -1,9 +1,14 @@
+Custom version that adds
+- resume download
+- eta
+- dl speed
+
 
 <h1 align="center"><img src="logo.png" /> <br><img src="https://github.com/JiPaix/xdccJS/actions/workflows/node.js.yml/badge.svg"/> <a href="https://snyk.io/test/github/JiPaix/xdccJS?targetFile=package.json"><img src="https://snyk.io/test/github/JiPaix/xdccJS/badge.svg?targetFile=package.json" data-canonical-src="https://snyk.io/test/github/JiPaix/xdccJS?targetFile=package.json" style="max-width:100%;"></a> <a href="https://www.npmjs.com/package/xdccjs"><img src='https://img.shields.io/npm/dt/xdccjs'/></a> <br><a href="https://www.codefactor.io/repository/github/jipaix/xdccjs"><img src="https://www.codefactor.io/repository/github/jipaix/xdccjs/badge" /></a> <a href="https://codeclimate.com/github/JiPaix/xdccJS/maintainability"><img src="https://img.shields.io/codeclimate/maintainability-percentage/JiPaix/xdccJS" /></a> <a href="https://deepscan.io/dashboard#view=project&tid=8945&pid=11179&bid=163106"><img src="https://deepscan.io/api/teams/8945/projects/11179/branches/163106/badge/grade.svg"/> <a href="https://discord.gg/cSgnkqxMp2"><img src='https://img.shields.io/discord/706018150520717403'/></a></h1>
 
 ### Features :
-***xdccJS is a complete implementation of the <a href="https://en.wikipedia.org/wiki/XDCC">XDCC protocol</a> for nodejs***.  
-It can also be used as a <a href="#command-line-interface">command-line</a> downloader !  
+***xdccJS is a complete implementation of the <a href="https://en.wikipedia.org/wiki/XDCC">XDCC protocol</a> for nodejs***.
+It can also be used as a <a href="#command-line-interface">command-line</a> downloader !
 - Batch downloads : `1-3, 5, 32-35, 101`
 - Resume file and auto-retry
 - Pipes!
@@ -90,21 +95,21 @@ const opts = {
   botNameMatch: false, // Block downloads if the bot's name does not match the request      - default: true
   throttle: 500, // Throttle download speed to n KiB/s                                       - default: undefined (disabled)
   queue: /soMething(.*)maTching/g //                                                        - default: undefined (disabled)
-  // ^ Regex matching the bot's message when you're request is moved to a queue    
+  // ^ Regex matching the bot's message when you're request is moved to a queue
 }
 ```
 
 
 ### Config
 >xdccJS.**config( parameters?** : object **)**
-change parameters during runtime  
+change parameters during runtime
 If there's a file downloading `throttle` and `passivePort` won't be applied until the next download
 ```js
 xdccJS.config({
   passivePort: [5000, 5001, 5002],
   throttle: 800,
   nickname: 'TrustMe',
-  chan: ['#candy', '#fruits'], 
+  chan: ['#candy', '#fruits'],
   path: 'download/subfolder',
   botNameMatch: false,
   retry: 5,
@@ -117,8 +122,8 @@ xdccJS.config({
 
 
 ### Download
->xdccJS.**download( bot** : string, **packets** : string | number | number[] | string[], **options?**: { **ipv6?**: boolean ** **throttle?**: number } **)**  
-`download()` is asynchronous and returns a `Job`  
+>xdccJS.**download( bot** : string, **packets** : string | number | number[] | string[], **options?**: { **ipv6?**: boolean ** **throttle?**: number } **)**
+`download()` is asynchronous and returns a `Job`
 `options` are optional, per job
 `options.ipv6` parameter is only required when if a bot's is ipv6 **AND** uses passive DCC
 ```js
@@ -130,9 +135,9 @@ xdccJS.on('ready', async () => {
 })
 ```
 #### Download queue detection
-xdccJS will timeout any request after a certain amount of time when no file is sent (see [Options.timeout](#options)), Which is exactly what happens when a bot puts you into queue. 
+xdccJS will timeout any request after a certain amount of time when no file is sent (see [Options.timeout](#options)), Which is exactly what happens when a bot puts you into queue.
 
-To avoid this behavior you need to provide a [regex](https://www.w3schools.com/jsref/jsref_obj_regexp.asp) matching the bot "queue message".  
+To avoid this behavior you need to provide a [regex](https://www.w3schools.com/jsref/jsref_obj_regexp.asp) matching the bot "queue message".
 
 If you are clueless about regexes try [regexlearn.com](https://regexlearn.com/learn/regex101) interactive tutorial.
 
@@ -152,7 +157,7 @@ xdccJS.on('ready', async () =>{
 })
 ```
 ### Jobs
-`Job`s are `download()` instances which are tied to the target nickname.  
+`Job`s are `download()` instances which are tied to the target nickname.
 calling `download()` multiple times for the same target will update current job.
 
 ```js
@@ -221,7 +226,7 @@ const arrayOfJobs = await xdccJS.jobs()
 **Most events are accessible both from xdccJS or a Job scope**
 
 *FYI: those examples are for the sake of showing xdccJS capabilities, if you need download status to be displayed in a nice way just start xdccJS with parameter `verbose = true`*
- 
+
 
 > [**xdccJS**].on( **'ready'** ) : *xdccJS is ready to download*
 - ```js
@@ -280,27 +285,27 @@ const arrayOfJobs = await xdccJS.jobs()
       //=> { file: 'filename.pdf', filePath: 'pipe', length: 5844849 }
     })
     ```
-> [**xdccJS**].on( **'error'** ) : *Connection Errors*  
+> [**xdccJS**].on( **'error'** ) : *Connection Errors*
 - ```js
     xdccJS.on('error', (err) => {
       err instanceof Error //=> true
       console.error(err.message) //=> UNREACHABLE HOST 1.1.1.1:6667
     })
     ```
-> [**Job**].on( **'error'** ) : *Job interrupted/canceled or connexion with bot unreachable*  
+> [**Job**].on( **'error'** ) : *Job interrupted/canceled or connexion with bot unreachable*
 - ```js
     job.on('error', (message, fileInfo) => {
       console.error(message) //=> timeout: no response from XDCC|BLUE
       console.log(fileInfo) //=> { file: 'filename.pdf', filePath: 'pipe', length: 5844849 }
     })
     ```
-> [**Job**].on( **'cancel'** ) : *Job canceled by user*  
+> [**Job**].on( **'cancel'** ) : *Job canceled by user*
 - ```js
     job.on('cancel', (message) => {
       console.error(message) //=> "cancelled by user"
     })
     ```
-> [**xdccJS**].on( **'debug'** ) : *debug message*  
+> [**xdccJS**].on( **'debug'** ) : *debug message*
 - ```js
     xdccJS.on('debug', (message) => {
       console.info(message)
@@ -312,7 +317,7 @@ In order to use pipes xdccJS need to be initialized with path option set to fals
 // This example will start vlc.exe then play the video while it's downloading.
 const opts = {
   host: 'irc.server.net',
-  path: false, 
+  path: false,
 }
 
 const xdccJS = new XDCC(opts)
@@ -338,7 +343,7 @@ xdccJS.on('can-quit', () => {
 })
 ```
 ## Advanced IRC commands
-**[@kiwiirc/irc-framework](https://github.com/kiwiirc/irc-framework) is embed into xdccJS**.  
+**[@kiwiirc/irc-framework](https://github.com/kiwiirc/irc-framework) is embed into xdccJS**.
 Check their client API [documentation](https://github.com/kiwiirc/irc-framework/blob/master/docs/clientapi.md)
 ```js
 
@@ -356,7 +361,7 @@ An extended version of this example is available [here](/examples/irc-framework.
 ## Installation
 ```bash
 npm install xdccjs -g
-```  
+```
 ## CLI Options
 ```
 -V, --version              output the version number
@@ -389,8 +394,8 @@ npm install xdccjs -g
 ## Usage
 ```bash
 xdccJS --host irc.server.net --bot "XDCC-BOT|BLUE" --download 1-5,100-105 --path "/home/user/downloads"
-```  
-Alternatively, if you want to pipe the file just ommit the `--path` option  :  
+```
+Alternatively, if you want to pipe the file just ommit the `--path` option  :
 ```bash
 xdccJS --host irc.server.net --bot "XDCC-BOT|RED" --download 110 | vlc -
 ```
@@ -416,7 +421,7 @@ If a profile provide at least a `--host` you can use the *lazy* mode:
 ```bash
 xdccJS "/msg XDCC|BOT xdcc send 1132-1337" # quotes are important here
 ```
-  
+
 #### Save Profile
 ```bash
 xdccJS --save-profile "my_profile" --host "irc.server.net" --port 6669 --path "C:/Users/username/Desktop"
@@ -432,18 +437,18 @@ xdccJS --delete-profile "my_profile"
 ```
 #### List available profiles
 ```bash
- xdcJS --list-profile 
+ xdcJS --list-profile
  ```
 ## FYI
 - hashtags for channels and packs are optional :
 - ```bash
       --channel "#my-channel" --download "#132"
       # is the same as
-      --channel "my-channel" --download "132" 
+      --channel "my-channel" --download "132"
     ```
 - given options prevails over the one provided by profiles :
 - except for `--host`, which results in xdccJS ignoring the current profile
-- example: 
+- example:
     ```bash
         # current profile has --wait 5, but this time you need --wait 50
         xdccJS --bot "mybot" --download "125-130" --wait 50
@@ -456,7 +461,7 @@ xdccJS --delete-profile "my_profile"
       # this wont work
       --path /home/user/my folder --bot XDCC|BOT --download 123-125
       # fixed
-      --path "/home/user/my folder" --bot "XDCC|BOT" --download 123-125 
+      --path "/home/user/my folder" --bot "XDCC|BOT" --download 123-125
     ```
 - an example with `--queue` regex:
 - ```bash
