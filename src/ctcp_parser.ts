@@ -182,7 +182,11 @@ export class CtcpParser extends AddJob {
       this.print(`%info% Resuming %cyan%${fileInfo.file}%reset% from position ${fileInfo.position}`, 6);
       
       const quotedFilename = CtcpParser.fileNameWithQuotes(fileInfo.file);
-      this.ctcpRequest(resp.nick, 'DCC RESUME', quotedFilename, fileInfo.port, fileInfo.position);
+      if (fileInfo.token) {
+        this.ctcpRequest(resp.nick, 'DCC RESUME', quotedFilename, fileInfo.port, fileInfo.position, fileInfo.token);
+      } else {
+        this.ctcpRequest(resp.nick, 'DCC RESUME', quotedFilename, fileInfo.port, fileInfo.position);
+      }
       this.addToResumeQueue(fileInfo, resp.nick);
       this.emit('debug', 'xdccJS:: BEFORE_TCP_REQUEST_RESUME');
       return true;
@@ -213,10 +217,10 @@ export class CtcpParser extends AddJob {
         file: parts[2].replace(/"/g, ''),
         filePath: resume.filePath,
         ip: resume.ip,
-        port: resume.port,
-        position: resume.position,
+        port: parseInt(parts[3], 10),
+        position: parseInt(parts[4], 10),
         length: resume.length,
-        token: resume.token,
+        token: parts[5] ? parts[5] : resume.token,
       };
     }
     return {

@@ -79,6 +79,9 @@ export default class Downloader extends CtcpParser {
   private setupStream(fileInfo: FileInfo): fs.WriteStream | PassThrough {
     if (this.path) {
       if (fileInfo.type === 'DCC ACCEPT') {
+        if (fileInfo.position === 0) {
+          return fs.createWriteStream(fileInfo.filePath);
+        }
         return fs.createWriteStream(fileInfo.filePath, {
           flags: 'r+',
           start: fileInfo.position,
